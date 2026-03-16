@@ -35,4 +35,3 @@ You can open it directly or serve it via a local web server.
    ```
 
 3. Open the printed local URL in your browser.
-

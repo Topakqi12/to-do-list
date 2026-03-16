@@ -236,4 +236,3 @@ hideCompletedCheckbox.addEventListener("change", renderTasks);
 
 loadTasks();
 renderTasks();
-
