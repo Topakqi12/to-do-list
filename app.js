@@ -11,6 +11,40 @@ let tasks = [];
 let nextId = 1;
 let lastAddedId = null;
 
+// #region agent log
+function __agentLog(hypothesisId, message, data) {
+  try {
+    if (typeof fetch !== "function") return;
+    fetch("http://127.0.0.1:7902/ingest/d7ad4c92-aee6-417c-89a8-15c74b922bf2", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "63eddc" },
+      body: JSON.stringify({
+        sessionId: "63eddc",
+        runId: window.__agentRunId || "pre-fix",
+        hypothesisId,
+        location: "app.js:__agentLog",
+        message,
+        data,
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+  } catch {
+    // ignore
+  }
+}
+// #endregion
+
+// #region agent log
+__agentLog("H1_DOM_NULL", "DOM elements resolved", {
+  hasTaskTitleInput: !!taskTitleInput,
+  hasAddTaskBtn: !!addTaskBtn,
+  hasSortSelect: !!sortSelect,
+  hasHideCompletedCheckbox: !!hideCompletedCheckbox,
+  hasTaskListEl: !!taskListEl,
+  hasEmptyStateEl: !!emptyStateEl,
+});
+// #endregion
+
 function saveTasks() {
   try {
     const payload = {
@@ -18,17 +52,39 @@ function saveTasks() {
       nextId,
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    // #region agent log
+    __agentLog("H4_STORAGE_WRITE", "saveTasks ok", {
+      taskCount: Array.isArray(tasks) ? tasks.length : null,
+      nextIdType: typeof nextId,
+    });
+    // #endregion
   } catch {
     // Ignore storage failures.
+    // #region agent log
+    __agentLog("H4_STORAGE_WRITE", "saveTasks failed", { storageKey: STORAGE_KEY });
+    // #endregion
   }
 }
 
 function loadTasks() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
+    // #region agent log
+    __agentLog("H2_STORAGE_PARSE", "loadTasks read raw", {
+      hasRaw: !!raw,
+      rawLength: typeof raw === "string" ? raw.length : null,
+    });
+    // #endregion
     if (!raw) return;
 
     const parsed = JSON.parse(raw);
+    // #region agent log
+    __agentLog("H2_STORAGE_PARSE", "loadTasks parsed", {
+      parsedType: typeof parsed,
+      hasTasksArray: !!(parsed && Array.isArray(parsed.tasks)),
+      nextIdType: parsed ? typeof parsed.nextId : null,
+    });
+    // #endregion
     if (Array.isArray(parsed.tasks)) {
       tasks = parsed.tasks;
       if (typeof parsed.nextId === "number") {
@@ -44,11 +100,19 @@ function loadTasks() {
     }
   } catch {
     // Ignore malformed data.
+    // #region agent log
+    __agentLog("H2_STORAGE_PARSE", "loadTasks failed (malformed or blocked)", {
+      storageKey: STORAGE_KEY,
+    });
+    // #endregion
   }
 }
 
 function addTask(title) {
   const trimmed = title.trim();
+  // #region agent log
+  __agentLog("H3_INPUT", "addTask called", { titleType: typeof title, trimmedLength: trimmed.length });
+  // #endregion
   if (!trimmed) {
     return;
   }
@@ -131,6 +195,15 @@ function renderTasks() {
   }
 
   visibleTasks.sort(applySort);
+
+  // #region agent log
+  __agentLog("H5_RENDER", "renderTasks computed visibleTasks", {
+    totalTasks: Array.isArray(tasks) ? tasks.length : null,
+    visibleTasks: Array.isArray(visibleTasks) ? visibleTasks.length : null,
+    hideCompleted,
+    sortValue: sortSelect && sortSelect.value,
+  });
+  // #endregion
 
   taskListEl.innerHTML = "";
 
