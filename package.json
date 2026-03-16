@@ -1,0 +1,12 @@
+{
+  "name": "simple-todo-list",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A small vanilla JavaScript to-do list web app with sortable tasks.",
+  "scripts": {
+    "start": "npx serve ."
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
+
